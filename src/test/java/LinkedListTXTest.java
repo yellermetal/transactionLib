@@ -1,5 +1,7 @@
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import static junit.framework.TestCase.assertEquals;
@@ -10,16 +12,17 @@ public class LinkedListTXTest {
     public void testLinkedListMultiThread() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         LinkedList LL = new LinkedList();
-        Thread T1 = new Thread(new Run("T1", latch, LL));
-        Thread T2 = new Thread(new Run("T2", latch, LL));
-        Thread T3 = new Thread(new Run("T3", latch, LL));
-        T1.start();
-        T2.start();
-        T3.start();
+        int thread_num = 3;
+        List<Thread> threads = new ArrayList<>();
+        
+        for (int thread_id = 0; thread_id < thread_num; thread_id++) 
+        	threads.add( new Thread(new Run("T" + thread_id, latch, LL)));
+
+        for (Thread thread : threads)
+        	thread.start();
         latch.countDown();
-        T1.join();
-        T2.join();
-        T3.join();
+        for (Thread thread : threads)
+        	thread.join();
     }
 
     class Run implements Runnable {

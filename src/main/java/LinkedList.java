@@ -272,34 +272,37 @@ public class LinkedList {
 
     }
 
-    // Associates the specified value with the specified key in this map.
-    // If the map previously contained a mapping for the key, the old value
-    // is replaced.
-    // returns the previous value associated with key, or null if there was no
-    // mapping for key. (A null return can also indicate that the map previously
-    // associated null with key, if the implementation supports null values.)
-    // @throws NullPointerException if the specified key or value is null
+    /** 
+     * 
+     * @effects Associates the specified value with the specified key in this map.
+	 * If the map previously contained a mapping for the key, the old value is replaced.
+	 * 
+	 * @returns the previous value associated with key, or null if there was no
+	 * mapping for key. (A null return can also indicate that the map previously
+	 * associated null with key, if the implementation supports null values.)
+	 * 
+	 * @throws NullPointerException if the specified key or value is null
+	 */
     public Object put(Integer key, Object val) throws TXLibExceptions.AbortException {
 
         if (key == null || val == null)
             throw new NullPointerException();
 
+        // Get transaction local storage (write-set, read-set)
         LocalStorage localStorage = TX.lStorage.get();
 
-        // SINGLETON
+        // if called by a singleton
         if (!localStorage.TX) {
             return putSingleton(key, val);
         }
 
-        // TX
-
         localStorage.readOnly = false;
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = val;
+        LNode node = new LNode();
+        node.key = key;
+        node.val = val;
 
-        LNode pred = getPred(n, localStorage);
+        LNode pred = getPred(node, localStorage);
         LNode next = getNext(pred, localStorage);
         boolean found = false;
 
@@ -333,9 +336,9 @@ public class LinkedList {
         }
 
         // not found
-        n.next = next;
-        localStorage.putIntoWriteSet(pred, n, getVal(pred, localStorage), false);
-        localStorage.addToIndexAdd(this, n);
+        node.next = next;
+        localStorage.putIntoWriteSet(pred, node, getVal(pred, localStorage), false);
+        localStorage.addToIndexAdd(this, node);
 
         // add to read set
         localStorage.readSet.add(pred);

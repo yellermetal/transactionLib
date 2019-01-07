@@ -6,10 +6,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class TX {
 
-    public static final boolean DEBUG_MODE_LL = false;
-    public static final boolean DEBUG_MODE_QUEUE = false;
-    private static final boolean DEBUG_MODE_TX = false;
-    private static final boolean DEBUG_MODE_VERSION = false;
+    public static final boolean DEBUG_MODE_LL = true;
+    public static final boolean DEBUG_MODE_QUEUE = true;
+    private static final boolean DEBUG_MODE_TX = true;
+    private static final boolean DEBUG_MODE_VERSION = true;
 
     protected static ThreadLocal<LocalStorage> lStorage = ThreadLocal.withInitial(LocalStorage::new);
 

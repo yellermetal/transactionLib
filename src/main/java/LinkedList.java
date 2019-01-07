@@ -914,7 +914,7 @@ public class LinkedList implements Iterable<LNode> {
                 else {
                 	localStorage.readSet.add(node);
                 	if (TX.DEBUG_MODE_LL) {
-                		System.out.println("Added node: " + node.toString() + " to read-set");
+                		//System.out.println("Added node: " + node.toString() + " to read-set");
                 	}
                 	return true;
                 }

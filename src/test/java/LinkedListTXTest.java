@@ -2,6 +2,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
 import static junit.framework.TestCase.assertEquals;
@@ -48,14 +49,24 @@ public class LinkedListTXTest {
             String b = threadName + "-b";
             String c = threadName + "-c";
             String empty = "";
-            Integer k_a = 10 + threadName.charAt(1);
-            Integer k_b = 20 + threadName.charAt(1);
-            Integer k_c = 30 + threadName.charAt(1);
+            Integer k_a = 10 + Character.getNumericValue(threadName.charAt(1));
+            Integer k_b = 20 + Character.getNumericValue(threadName.charAt(1));
+            Integer k_c = 30 + Character.getNumericValue(threadName.charAt(1));
 
             while (true) {
                 try {
                     try {
                         TX.TXbegin();
+                        assertEquals(null, LL.put(k_a, a));
+                        assertEquals(null, LL.put(k_b, b));
+                        assertEquals(null, LL.put(k_c, c));
+                        assertEquals(true, LL.containsKey(k_a));
+                        assertEquals(true, LL.containsKey(k_b));
+                        assertEquals(true, LL.containsKey(k_c));
+                        Iterator<LNode> iter = LL.iterator();
+                        while(iter.hasNext())
+                        	iter.next();
+                        /*
                         assertEquals(false, LL.containsKey(k_c));
                         assertEquals(null, LL.get(k_c));
                         assertEquals(null, LL.put(k_c, c));
@@ -100,6 +111,7 @@ public class LinkedListTXTest {
                         assertEquals(b, LL.get(k_b));
                         assertEquals(c, LL.remove(k_c));
                         assertEquals(null, LL.putIfAbsent(k_c, c));
+                        */
                     } finally {
                         TX.TXend();
                     }

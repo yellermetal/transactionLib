@@ -2,9 +2,11 @@ import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 
-public class LinkedList {
+public class LinkedList implements Iterable<LNode> {
 
     private static Unsafe unsafe = null;
 
@@ -35,7 +37,7 @@ public class LinkedList {
     protected Index index;
 
     public LinkedList() {
-        head.key = Integer.MIN_VALUE;
+        head.key = 0;//Integer.MIN_VALUE;
         // TODO(GG) the comparator/index is a nested class, its code explicitly
         // ensures that head is the minimal element
         index = new Index(head);
@@ -273,15 +275,14 @@ public class LinkedList {
     }
 
     /** 
-     * 
      * @effects Associates the specified value with the specified key in this map.
-	 * If the map previously contained a mapping for the key, the old value is replaced.
+	 * 			If the map previously contained a mapping for the key, the old value is replaced.
 	 * 
-	 * @returns the previous value associated with key, or null if there was no
-	 * mapping for key. (A null return can also indicate that the map previously
-	 * associated null with key, if the implementation supports null values.)
+	 * @return  the previous value associated with key, or null if there was no
+	 * 			mapping for key. (A null return can also indicate that the map previously
+	 * 			associated null with key, if the implementation supports null values.)
 	 * 
-	 * @throws NullPointerException if the specified key or value is null
+	 * @throws  NullPointerException if the specified key or value is null
 	 */
     public Object put(Integer key, Object val) throws TXLibExceptions.AbortException {
 
@@ -309,13 +310,14 @@ public class LinkedList {
         while (next != null) {
             if (next.key.compareTo(key) == 0) {
                 found = true;
-                break;
-            } else if (next.key.compareTo(key) > 0) {
-                break;
-            } else {
+                break; 
+            } 
+            else if (next.key.compareTo(key) < 0) {
                 pred = next;
                 next = getNext(pred, localStorage);
-            }
+            } 
+            else
+            	break;
         }
 
         if (found) {
@@ -323,7 +325,8 @@ public class LinkedList {
             if (we != null) {
                 // if it is already in write set then just change val
                 localStorage.putIntoWriteSet(next, we.next, val, we.deleted);
-            } else {
+            } 
+            else {
                 localStorage.putIntoWriteSet(next, next.next, val, false);
             }
             // add to read set
@@ -458,13 +461,17 @@ public class LinkedList {
 
     }
 
-    // If the specified key is not already associated with a value,
-    // associate it with the given value.
-    // Returns the previous value associated with the specified key,
-    // or null if there was no mapping for the key.
-    // (A null return can also indicate that the map previously associated
-    // null with the key, if the implementation supports null values.)
-    // @throws NullPointerException if the specified key or value is null
+    /**  
+     * @effects If the specified key is not already associated with a value,
+     * 			associate it with the given value.
+     * 
+     * @return  The previous value associated with the specified key,
+     * 			or null if there was no mapping for the key.
+     * 			(A null return can also indicate that the map previously associated
+     * 			null with the key, if the implementation supports null values.)
+     * 
+     * @throws  NullPointerException if the specified key or value is null
+     */
     public Object putIfAbsent(Integer key, Object val) throws TXLibExceptions.AbortException {
 
         if (key == null || val == null)
@@ -628,11 +635,15 @@ public class LinkedList {
         }
 
     }
-
-    // Removes the mapping for a key from this map if it is present
-    // Returns the value to which this map previously associated the key,
-    // or null if the map contained no mapping for the key.
-    // @throws NullPointerException if the specified key is null
+    
+    /**
+     * @effects Removes the mapping for a key from this map if it is present
+     * 
+     * @return  The value to which this map previously associated the key,
+     * 		    or null if the map contained no mapping for the key.
+     * 
+     * @throws  NullPointerException if the specified key is null
+     */
     public Object remove(Integer key) throws TXLibExceptions.AbortException {
 
         if (key == null)
@@ -852,11 +863,11 @@ public class LinkedList {
 
         // TX
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = null;
+        LNode node = new LNode();
+        node.key = key;
+        node.val = null;
 
-        LNode pred = getPred(n, localStorage);
+        LNode pred = getPred(node, localStorage);
         LNode next = getNext(pred, localStorage);
 
         while (next != null && next.key.compareTo(key) < 0) {
@@ -880,5 +891,49 @@ public class LinkedList {
             return getVal(next, localStorage);
         }
     }
+
+	@Override
+	public Iterator<LNode> iterator()  throws TXLibExceptions.AbortException {
+		
+		// SINGLETON
+        if (TX.lStorage.get() == null) {
+            return null;
+        }
+        
+        // TX
+        
+        Iterator<LNode> iter = new Iterator<LNode>() {
+
+            private LNode node = head;
+            private LocalStorage localStorage = TX.lStorage.get();
+            
+            @Override
+            public boolean hasNext() {
+            	if (node == null || getNext(node, localStorage) == null)
+                	return false;
+                else {
+                	localStorage.readSet.add(node);
+                	if (TX.DEBUG_MODE_LL) {
+                		System.out.println("Added node: " + node.toString() + " to read-set");
+                	}
+                	return true;
+                }
+            }
+
+            @Override
+            public LNode next() {
+                if (node == null)
+                	throw new NoSuchElementException();
+                node = getNext(node, localStorage);
+            	return node;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+        return iter;
+	}
 
 }

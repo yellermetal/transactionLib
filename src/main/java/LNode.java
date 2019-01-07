@@ -152,5 +152,10 @@ public class LNode {
         }
         versionAndFlags.set(l);
     }
+    
+    @Override
+    public String toString() {
+    	return "(" + key + ", " + val + ")";
+    }
 
 }

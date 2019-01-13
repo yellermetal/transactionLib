@@ -891,13 +891,41 @@ public class LinkedList implements Iterable<LNode> {
             return getVal(next, localStorage);
         }
     }
-
-	@Override
-	public Iterator<LNode> iterator()  throws TXLibExceptions.AbortException {
+	
+    private Iterator<LNode> iteratorSingleton() {
 		
-		// SINGLETON
-        if (TX.lStorage.get() == null) {
-            return null;
+	Iterator<LNode> iter = new Iterator<LNode>() {	
+	    
+	    private LNode node = head;
+
+            @Override
+            public boolean hasNext() {
+
+                
+            }
+
+            @Override
+            public LNode next() {
+
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+			
+	};
+	return iter;
+    }
+
+    @Override
+    public Iterator<LNode> iterator()  throws TXLibExceptions.AbortException {
+		
+	LocalStorage localStorage = TX.lStorage.get();
+		
+	// SINGLETON
+        if (!localStorage.TX) {
+            return iteratorSingleton();
         }
         
         // TX
@@ -909,8 +937,12 @@ public class LinkedList implements Iterable<LNode> {
             
             @Override
             public boolean hasNext() {
-            	if (node == null || getNext(node, localStorage) == null)
+            	if (node == null)
                 	return false;
+		else if (getNext(node, localStorage) == null) {
+			localStorage.readSet.add(node);
+			return false;
+		}
                 else {
                 	localStorage.readSet.add(node);
                 	if (TX.DEBUG_MODE_LL) {
@@ -934,6 +966,6 @@ public class LinkedList implements Iterable<LNode> {
             }
         };
         return iter;
-	}
+    }
 
 }

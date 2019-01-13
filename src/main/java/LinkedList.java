@@ -900,37 +900,24 @@ public class LinkedList implements Iterable<LNode> {
     		
             private LNode getNext() {
             	
-            	LNode pred = node;
-                LNode next;
-                boolean startOver = true;
-                
+            	LNode pred, next;
                 while (true) {
-                    if (startOver) {
-                        pred = node;
-                    } else {
-                        pred = pred.next;
-                        if (pred == null) {
-                            // next was not null but now perd.next is null
-                            // to prevent null exception later
-                            startOver = true;
-                            continue;
-                        }
-                    }
                     
-                    startOver = false;
-
+                	pred = node;
+                    
                     if (pred.isLocked()) {
-                        startOver = true;
                         continue;
                     }
+                    
                     unsafe.loadFence();
                     next = pred.next;
                     unsafe.loadFence();
+                    
                     if (pred.isLockedOrDeleted()) {
-                        startOver = true;
                         continue;
                     }
-	            return next;
+                    
+                    return next;
                 }
             }
     		

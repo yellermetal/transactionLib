@@ -944,7 +944,7 @@ public class LinkedList implements Iterable<LNode> {
 
             @Override
             public LNode next() {
-            	node = getNext();
+            	node = this.getNext();
             	return node;
             }
 
@@ -976,11 +976,11 @@ public class LinkedList implements Iterable<LNode> {
             @Override
             public boolean hasNext() {
             	if (node == null)
-		    return false;
-		else if (getNext(node, localStorage) == null) {
-		    localStorage.readSet.add(node);
-		    return false;
-		}
+                    return false;
+                else if (getNext(node, localStorage) == null) {
+                    localStorage.readSet.add(node);
+                    return false;
+                }
                 else {
                     localStorage.readSet.add(node);
                     return true;

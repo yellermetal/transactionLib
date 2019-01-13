@@ -894,19 +894,62 @@ public class LinkedList implements Iterable<LNode> {
 	
     private Iterator<LNode> iteratorSingleton() {
 		
-	Iterator<LNode> iter = new Iterator<LNode>() {	
+    	Iterator<LNode> iter = new Iterator<LNode>() {	
 	    
-	    private LNode node = head;
+    		private LNode node = head;
+    		
+    		private LNode getNext() {
+            	
+            	LNode pred = node;
+                LNode next;
 
-            @Override
-            public boolean hasNext() {
-
+                boolean startOver = true;
                 
+                while (true) {
+
+                    if (startOver) {
+                        pred = node;
+                    } else {
+                        pred = pred.next;
+                        if (pred == null) {
+                            // next was not null but now perd.next is null
+                            // to prevent null exception later
+                            startOver = true;
+                            continue;
+                        }
+                    }
+                    
+                    startOver = false;
+
+                    if (pred.isLocked()) {
+                        startOver = true;
+                        continue;
+                    }
+                    unsafe.loadFence();
+                    next = pred.next;
+                    unsafe.loadFence();
+                    if (pred.isLockedOrDeleted()) {
+                        startOver = true;
+                        continue;
+                    }
+                    
+		            return next;
+                
+                }
             }
+    		
+    		@Override
+            public boolean hasNext() {
+    			if (this.getNext() == null)
+    				return false;
+    			else
+    				return true;
+    		}
 
             @Override
             public LNode next() {
-
+            	node = getNext();
+            	return node;
             }
 
             @Override
@@ -914,7 +957,7 @@ public class LinkedList implements Iterable<LNode> {
                 throw new UnsupportedOperationException();
             }
 			
-	};
+    	};
 	return iter;
     }
 

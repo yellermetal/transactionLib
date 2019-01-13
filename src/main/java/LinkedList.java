@@ -902,11 +902,9 @@ public class LinkedList implements Iterable<LNode> {
             	
             	LNode pred = node;
                 LNode next;
-
                 boolean startOver = true;
                 
                 while (true) {
-
                     if (startOver) {
                         pred = node;
                     } else {
@@ -932,19 +930,17 @@ public class LinkedList implements Iterable<LNode> {
                         startOver = true;
                         continue;
                     }
-                    
-		            return next;
-                
+	            return next;
                 }
             }
     		
-    		@Override
+    	    @Override
             public boolean hasNext() {
-    			if (this.getNext() == null)
-    				return false;
-    			else
-    				return true;
-    		}
+    	        if (this.getNext() == null)
+    	            return false;
+    	        else
+    	            return true;
+    	    }
 
             @Override
             public LNode next() {
@@ -955,8 +951,7 @@ public class LinkedList implements Iterable<LNode> {
             @Override
             public void remove() {
                 throw new UnsupportedOperationException();
-            }
-			
+            }		
     	};
 	return iter;
     }
@@ -981,24 +976,21 @@ public class LinkedList implements Iterable<LNode> {
             @Override
             public boolean hasNext() {
             	if (node == null)
-                	return false;
+		    return false;
 		else if (getNext(node, localStorage) == null) {
-			localStorage.readSet.add(node);
-			return false;
+		    localStorage.readSet.add(node);
+		    return false;
 		}
                 else {
-                	localStorage.readSet.add(node);
-                	if (TX.DEBUG_MODE_LL) {
-                		//System.out.println("Added node: " + node.toString() + " to read-set");
-                	}
-                	return true;
+                    localStorage.readSet.add(node);
+                    return true;
                 }
             }
 
             @Override
             public LNode next() {
                 if (node == null)
-                	throw new NoSuchElementException();
+                    throw new NoSuchElementException();
                 node = getNext(node, localStorage);
             	return node;
             }

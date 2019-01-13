@@ -896,9 +896,9 @@ public class LinkedList implements Iterable<LNode> {
 		
     	Iterator<LNode> iter = new Iterator<LNode>() {	
 	    
-    		private LNode node = head;
+            private LNode node = head;
     		
-    		private LNode getNext() {
+            private LNode getNext() {
             	
             	LNode pred = node;
                 LNode next;

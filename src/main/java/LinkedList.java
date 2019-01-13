@@ -898,12 +898,10 @@ public class LinkedList implements Iterable<LNode> {
 	    
             private LNode node = head;
     		
-            private LNode getNext() {
+            private LNode getNext(LNode pred) {
             	
-            	LNode pred, next;
+            	LNode next;
                 while (true) {
-                    
-                	pred = node;
                     
                     if (pred.isLocked()) {
                         continue;
@@ -923,7 +921,11 @@ public class LinkedList implements Iterable<LNode> {
     		
     	    @Override
             public boolean hasNext() {
-    	        if (this.getNext() == null)
+    	    	
+    	    	if (node == null)
+    	    		return false;
+    	    	
+    	        if (this.getNext(node) == null)
     	            return false;
     	        else
     	            return true;
@@ -931,7 +933,7 @@ public class LinkedList implements Iterable<LNode> {
 
             @Override
             public LNode next() {
-            	node = this.getNext();
+            	node = this.getNext(node);
             	return node;
             }
 
@@ -962,22 +964,20 @@ public class LinkedList implements Iterable<LNode> {
             
             @Override
             public boolean hasNext() {
+            	
             	if (node == null)
                     return false;
-                else if (getNext(node, localStorage) == null) {
-                    localStorage.readSet.add(node);
+            	
+            	localStorage.readSet.add(node);
+                if (getNext(node, localStorage) == null)                    
                     return false;
-                }
-                else {
-                    localStorage.readSet.add(node);
+                else
                     return true;
-                }
+                
             }
 
             @Override
             public LNode next() {
-                if (node == null)
-                    throw new NoSuchElementException();
                 node = getNext(node, localStorage);
             	return node;
             }

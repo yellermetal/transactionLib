@@ -660,11 +660,11 @@ public class LinkedList implements Iterable<LNode> {
 
         localStorage.readOnly = false;
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = null;
+        LNode node = new LNode();
+        node.key = key;
+        node.val = null;
 
-        LNode pred = getPred(n, localStorage);
+        LNode pred = getPred(node, localStorage);
         LNode next = getNext(pred, localStorage);
         boolean found = false;
 

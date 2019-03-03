@@ -660,11 +660,11 @@ public class LinkedList implements Iterable<LNode> {
 
         localStorage.readOnly = false;
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = null;
+        LNode node = new LNode();
+        node.key = key;
+        node.val = null;
 
-        LNode pred = getPred(n, localStorage);
+        LNode pred = getPred(node, localStorage);
         LNode next = getNext(pred, localStorage);
         boolean found = false;
 
@@ -891,68 +891,13 @@ public class LinkedList implements Iterable<LNode> {
             return getVal(next, localStorage);
         }
     }
-	
-    private Iterator<LNode> iteratorSingleton() {
-		
-    	Iterator<LNode> iter = new Iterator<LNode>() {	
-	    
-            private LNode node = head;
-    		
-            private LNode getNext(LNode pred) {
-            	
-            	LNode next;
-                while (true) {
-                    
-                    if (pred.isLocked()) {
-                        continue;
-                    }
-                    
-                    unsafe.loadFence();
-                    next = pred.next;
-                    unsafe.loadFence();
-                    
-                    if (pred.isLockedOrDeleted()) {
-                        continue;
-                    }
-                    
-                    return next;
-                }
-            }
-    		
-    	    @Override
-            public boolean hasNext() {
-    	    	
-    	    	if (node == null)
-    	    		return false;
-    	    	
-    	        if (this.getNext(node) == null)
-    	            return false;
-    	        else
-    	            return true;
-    	    }
 
-            @Override
-            public LNode next() {
-            	node = this.getNext(node);
-            	return node;
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }		
-    	};
-	return iter;
-    }
-
-    @Override
-    public Iterator<LNode> iterator()  throws TXLibExceptions.AbortException {
+	@Override
+	public Iterator<LNode> iterator()  throws TXLibExceptions.AbortException {
 		
-	LocalStorage localStorage = TX.lStorage.get();
-		
-	// SINGLETON
-        if (!localStorage.TX) {
-            return iteratorSingleton();
+		// SINGLETON
+        if (TX.lStorage.get() == null) {
+            return null;
         }
         
         // TX
@@ -964,20 +909,21 @@ public class LinkedList implements Iterable<LNode> {
             
             @Override
             public boolean hasNext() {
-            	
-            	if (node == null)
-                    return false;
-            	
-            	localStorage.readSet.add(node);
-                if (getNext(node, localStorage) == null)                    
-                    return false;
-                else
-                    return true;
-                
+            	if (node == null || getNext(node, localStorage) == null)
+                	return false;
+                else {
+                	localStorage.readSet.add(node);
+                	if (TX.DEBUG_MODE_LL) {
+                		//System.out.println("Added node: " + node.toString() + " to read-set");
+                	}
+                	return true;
+                }
             }
 
             @Override
             public LNode next() {
+                if (node == null)
+                	throw new NoSuchElementException();
                 node = getNext(node, localStorage);
             	return node;
             }
@@ -988,6 +934,6 @@ public class LinkedList implements Iterable<LNode> {
             }
         };
         return iter;
-    }
+	}
 
 }

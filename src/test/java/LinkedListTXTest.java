@@ -57,6 +57,9 @@ public class LinkedListTXTest {
                 try {
                     try {
                         TX.TXbegin();
+                        System.out.println(threadName + " finished TX-Begin with readVersion: " + 
+                        				   TX.lStorage.get().readVersion);
+                        
                         assertEquals(null, LL.put(k_a, a));
                         assertEquals(null, LL.put(k_b, b));
                         assertEquals(null, LL.put(k_c, c));
@@ -65,7 +68,9 @@ public class LinkedListTXTest {
                         assertEquals(true, LL.containsKey(k_c));
                         Iterator<LNode> iter = LL.iterator();
                         while(iter.hasNext())
-                        	iter.next();
+                        	System.out.println(threadName + " iterated over: " + iter.next().toString());
+                        
+                        
                         /*
                         assertEquals(false, LL.containsKey(k_c));
                         assertEquals(null, LL.get(k_c));
@@ -112,12 +117,19 @@ public class LinkedListTXTest {
                         assertEquals(c, LL.remove(k_c));
                         assertEquals(null, LL.putIfAbsent(k_c, c));
                         */
-                    } finally {
+                    } 
+                    
+                    finally {
+                    	System.out.println(threadName + " Starting TX-End... ");
                         TX.TXend();
                     }
-                } catch (TXLibExceptions.AbortException exp) {
+                } 
+                catch (TXLibExceptions.AbortException exp) {
+                	System.out.println(threadName + " Aborted... ");
                     continue;
                 }
+                
+                System.out.println(threadName + " finished succesfully. ");
                 break;
             }
 

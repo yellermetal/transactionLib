@@ -1,3 +1,4 @@
+
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -892,12 +893,66 @@ public class LinkedList implements Iterable<LNode> {
         }
     }
 
+
+    private Iterator<LNode> iteratorSingleton() {
+
+    	Iterator<LNode> iter = new Iterator<LNode>() {	
+
+            private LNode node = head;
+
+            private LNode getNext(LNode pred) {
+
+            	LNode next;
+                while (true) {
+
+                    if (pred.isLocked()) {
+                        continue;
+                    }
+
+                    unsafe.loadFence();
+                    next = pred.next;
+                    unsafe.loadFence();
+
+                    if (pred.isLockedOrDeleted()) {
+                        continue;
+                    }
+
+                    return next;
+                }
+            }
+
+    	    @Override
+            public boolean hasNext() {
+
+    	    	if (node == null)
+    	    		return false;
+
+    	        if (this.getNext(node) == null)
+    	            return false;
+    	        else
+    	            return true;
+    	    }
+
+            @Override
+            public LNode next() {
+            	node = this.getNext(node);
+            	return node;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }		
+    	};
+	return iter;
+    }
+    
 	@Override
 	public Iterator<LNode> iterator()  throws TXLibExceptions.AbortException {
 		
 		// SINGLETON
         if (TX.lStorage.get() == null) {
-            return null;
+        	return iteratorSingleton();
         }
         
         // TX

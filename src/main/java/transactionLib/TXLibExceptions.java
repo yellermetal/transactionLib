@@ -1,3 +1,5 @@
+package transactionLib;
+
 public class TXLibExceptions {
 
     @SuppressWarnings("serial")

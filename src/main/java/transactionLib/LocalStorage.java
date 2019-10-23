@@ -6,7 +6,7 @@ import java.util.HashSet;
 
 public class LocalStorage {
 
-    protected long readVersion = 0L;
+    public long readVersion = 0L;
     protected long writeVersion = 0L; // for debug
     protected boolean TX = false;
     protected boolean readOnly = true;

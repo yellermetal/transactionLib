@@ -6,9 +6,9 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 
-public class LinkedList implements Iterable<LNode> {
+
+public class LinkedList implements Iterable<Object> {
 
     private static Unsafe unsafe = null;
 
@@ -39,7 +39,7 @@ public class LinkedList implements Iterable<LNode> {
     protected Index index;
 
     public LinkedList() {
-        head.key = 0;//Integer.MIN_VALUE;
+        head.key = Integer.MIN_VALUE;
         // TODO(GG) the comparator/index is a nested class, its code explicitly
         // ensures that head is the minimal element
         index = new Index(head);
@@ -137,7 +137,7 @@ public class LinkedList implements Iterable<LNode> {
         if (n.isLocked()) {
             // abort TX
             localStorage.TX = false;
-            TXLibExceptions excep = new TXLibExceptions();
+            TXLibExceptions excep = new TXLibExceptions();            
             throw excep.new AbortException();
         }
         unsafe.loadFence();
@@ -895,9 +895,9 @@ public class LinkedList implements Iterable<LNode> {
     }
 
 
-    private Iterator<LNode> iteratorSingleton() {
+    private Iterator<Object> iteratorSingleton() {
 
-    	Iterator<LNode> iter = new Iterator<LNode>() {	
+    	return new Iterator<Object>() {	
 
             private LNode node = head;
 
@@ -925,71 +925,78 @@ public class LinkedList implements Iterable<LNode> {
     	    @Override
             public boolean hasNext() {
 
-    	    	if (node == null)
+    	    	if (this.getNext(node) == null)
     	    		return false;
 
-    	        if (this.getNext(node) == null)
-    	            return false;
-    	        else
-    	            return true;
+    	        return true;
     	    }
 
             @Override
-            public LNode next() {
+            public Object next() {
             	node = this.getNext(node);
-            	return node;
+            	return node.val;
             }
 
             @Override
             public void remove() {
                 throw new UnsupportedOperationException();
-            }		
+            }	
+            
     	};
-	return iter;
     }
     
-	@Override
-	public Iterator<LNode> iterator()  throws TXLibExceptions.AbortException {
+	public Iterator<Object> iterator()  throws TXLibExceptions.AbortException {
 		
-		// SINGLETON
-        if (TX.lStorage.get() == null) {
-        	return iteratorSingleton();
+		LocalStorage localStorage = TX.lStorage.get();
+
+        // SINGLETON
+        if (!localStorage.TX) {
+            return iteratorSingleton();
         }
-        
         // TX
         
-        Iterator<LNode> iter = new Iterator<LNode>() {
+        return new Iterator<Object>() {
 
             private LNode node = head;
             private LocalStorage localStorage = TX.lStorage.get();
             
             @Override
             public boolean hasNext() {
-            	if (node == null || getNext(node, localStorage) == null)
+            	
+            	if (node == head)
+            		localStorage.readSet.add(node);
+            	          	
+            	if  (getNext(node, localStorage) == null)
                 	return false;
-                else {
-                	localStorage.readSet.add(node);
-                	if (TX.DEBUG_MODE_LL) {
-                		//System.out.println("Added node: " + node.toString() + " to read-set");
-                	}
-                	return true;
-                }
+            	
+                return true;
             }
 
             @Override
-            public LNode next() {
-                if (node == null)
-                	throw new NoSuchElementException();
+            public Object next() {
+           			          	
                 node = getNext(node, localStorage);
-            	return node;
+                localStorage.readSet.add(node);
+            	return getVal(node, localStorage);
             }
 
             @Override
             public void remove() {
                 throw new UnsupportedOperationException();
             }
+
         };
-        return iter;
+	}
+
+	public int getSize() throws TXLibExceptions.AbortException {
+		
+		int counter = 0;
+		
+		for (Iterator<Object> iter = iterator(); iter.hasNext(); iter.next())
+			counter++;
+		
+		return counter;
+		
 	}
 
 }

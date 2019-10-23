@@ -13,7 +13,7 @@ public class TX {
     private static final boolean DEBUG_MODE_TX = false;
     private static final boolean DEBUG_MODE_VERSION = false;
 
-    protected static ThreadLocal<LocalStorage> lStorage = ThreadLocal.withInitial(LocalStorage::new);
+    public static ThreadLocal<LocalStorage> lStorage = ThreadLocal.withInitial(LocalStorage::new);
 
     private static AtomicLong GVC = new AtomicLong();
 

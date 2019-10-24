@@ -1,8 +1,7 @@
 package test;
 
-import java.util.Iterator;
-
 import transactionLib.LinkedList;
+import transactionLib.RangeIterator;
 
 public class LL_Matrix {
 	
@@ -45,7 +44,8 @@ public class LL_Matrix {
         
         for (int i = 0; i < dim; i++) { 
         	int j = 0;
-        	Iterator<Object> it = matrix[i].iterator();
+        	RangeIterator<Object> it = matrix[i].iterator();
+        	it.init();
         	while(it.hasNext()) {
         		int val = (int) it.next();
         		row_sums[i] += val;

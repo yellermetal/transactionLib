@@ -35,11 +35,10 @@ public class LinkedList implements Iterable<Object> {
         }
     }
 
-    protected LNode head = new LNode(); // protected (not private) for testing
+    protected LNode head = new LNode(Integer.MIN_VALUE, null); // protected (not private) for testing
     protected Index index;
 
     public LinkedList() {
-        head.key = Integer.MIN_VALUE;
         // TODO(GG) the comparator/index is a nested class, its code explicitly
         // ensures that head is the minimal element
         index = new Index(head);
@@ -160,9 +159,7 @@ public class LinkedList implements Iterable<Object> {
 
     private Object putSingleton(Integer key, Object val) {
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = val;
+        LNode n = new LNode(key, val);
 
         LNode pred;
         LNode next;
@@ -301,9 +298,7 @@ public class LinkedList implements Iterable<Object> {
 
         localStorage.readOnly = false;
 
-        LNode node = new LNode();
-        node.key = key;
-        node.val = val;
+        LNode node = new LNode(key, val);
 
         LNode pred = getPred(node, localStorage);
         LNode next = getNext(pred, localStorage);
@@ -358,9 +353,7 @@ public class LinkedList implements Iterable<Object> {
 
     private Object putIfAbsentSingleton(Integer key, Object val) {
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = val;
+        LNode n = new LNode(key, val);
 
         LNode pred;
         LNode next;
@@ -489,9 +482,7 @@ public class LinkedList implements Iterable<Object> {
         // TX
         localStorage.readOnly = false;
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = val;
+        LNode n = new LNode(key, val);
 
         LNode pred = getPred(n, localStorage);
         LNode next = getNext(pred, localStorage);
@@ -526,8 +517,7 @@ public class LinkedList implements Iterable<Object> {
 
     private Object removeSingleton(Integer key) {
 
-        LNode n = new LNode();
-        n.key = key;
+        LNode n = new LNode(key, null);
 
         LNode pred;
         LNode next;
@@ -662,9 +652,7 @@ public class LinkedList implements Iterable<Object> {
 
         localStorage.readOnly = false;
 
-        LNode node = new LNode();
-        node.key = key;
-        node.val = null;
+        LNode node = new LNode(key, null);
 
         LNode pred = getPred(node, localStorage);
         LNode next = getNext(pred, localStorage);
@@ -705,9 +693,7 @@ public class LinkedList implements Iterable<Object> {
 
     private boolean containsKeySingleton(Integer key) {
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = null;
+        LNode n = new LNode(key, null);
 
         LNode pred = null;
         LNode next;
@@ -772,9 +758,7 @@ public class LinkedList implements Iterable<Object> {
 
         // TX
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = null;
+        LNode n = new LNode(key, null);
 
         LNode pred = getPred(n, localStorage);
         LNode next = getNext(pred, localStorage);
@@ -801,9 +785,7 @@ public class LinkedList implements Iterable<Object> {
         if (key == null)
             throw new NullPointerException();
 
-        LNode n = new LNode();
-        n.key = key;
-        n.val = null;
+        LNode n = new LNode(key, null);
 
         LNode pred = null;
         LNode next;
@@ -865,11 +847,7 @@ public class LinkedList implements Iterable<Object> {
 
         // TX
 
-        LNode node = new LNode();
-        node.key = key;
-        node.val = null;
-
-        LNode pred = getPred(node, localStorage);
+        LNode pred = getPred(new LNode(key, null), localStorage);
         LNode next = getNext(pred, localStorage);
 
         while (next != null && next.key.compareTo(key) < 0) {
@@ -895,13 +873,14 @@ public class LinkedList implements Iterable<Object> {
     }
 
 
-    private Iterator<Object> iteratorSingleton() {
+    private RangeIterator<Object> iteratorSingleton() {
+    	
+    	return new RangeIterator<Object>() {
 
-    	return new Iterator<Object>() {	
-
-            private LNode node = head;
-
-            private LNode getNext(LNode pred) {
+    		private LNode node = head;
+    		private Integer end = Integer.MAX_VALUE;
+    		
+    		private LNode getNext(LNode pred) {
 
             	LNode next;
                 while (true) {
@@ -921,31 +900,52 @@ public class LinkedList implements Iterable<Object> {
                     return next;
                 }
             }
+    		
+    		@Override
+			public void init() {
+				node = head;				
+			}
 
-    	    @Override
-            public boolean hasNext() {
+			@Override
+			public void init_from(Object start) {
+				node = getPredSingleton(new LNode((int) start, null));			
+			}
 
-    	    	if (this.getNext(node) == null)
+			@Override
+			public void init_upTo(Object end) {
+				node = head;
+				this.end = (int) end;
+				
+			}
+
+			@Override
+			public void init_range(Object start, Object end) {
+				
+				this.init_from(start);
+				this.end = (int) end;
+				
+			}
+    		
+			@Override
+			public boolean hasNext() {
+				
+				LNode next = this.getNext(node);
+				if (next == null || next.key > end)
     	    		return false;
 
     	        return true;
-    	    }
+			}
 
-            @Override
-            public Object next() {
-            	node = this.getNext(node);
+			@Override
+			public Object next() {
+				node = this.getNext(node);
             	return node.val;
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }	
-            
+			}
+    		
     	};
     }
     
-	public Iterator<Object> iterator()  throws TXLibExceptions.AbortException {
+	public RangeIterator<Object> iterator()  throws TXLibExceptions.AbortException {
 		
 		LocalStorage localStorage = TX.lStorage.get();
 
@@ -954,40 +954,70 @@ public class LinkedList implements Iterable<Object> {
             return iteratorSingleton();
         }
         // TX
-        
-        return new Iterator<Object>() {
+        return new RangeIterator<Object>() {
 
-            private LNode node = head;
-            private LocalStorage localStorage = TX.lStorage.get();
-            
-            @Override
-            public boolean hasNext() {
-            	
-            	if (node == head)
-            		localStorage.readSet.add(node);
-            	          	
-            	if  (getNext(node, localStorage) == null)
-                	return false;
-            	
-                return true;
-            }
+    		private LNode node;
+    		private Integer end = Integer.MAX_VALUE;
+    	    private LocalStorage localStorage;
+    	    
+    	    @Override
+    		public void init() {
+    	    	
+    	    	node = head;
+    	    	localStorage = TX.lStorage.get();
+    	    	localStorage.readSet.add(node);
+    			
+    		}
+    	
+    		@Override
+    		public void init_from(Object start) {
 
-            @Override
-            public Object next() {
-           			          	
-                node = getNext(node, localStorage);
-                localStorage.readSet.add(node);
-            	return getVal(node, localStorage);
-            }
+    			localStorage = TX.lStorage.get();
+    			node = getPred(new LNode((int) start, null), localStorage);			    	
+    	    	localStorage.readSet.add(node);
+    			
+    		}
+    		
+    		@Override
+    		public void init_upTo(Object end) {
 
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
+    			node = head;
+    			localStorage = TX.lStorage.get();		    	
+    	    	localStorage.readSet.add(node);
+    	    	this.end = (int) end;
+    			
+    		}
+    	
+    		@Override
+    		public void init_range(Object start, Object end) {
+    			
+    			this.init_from(start);
+    			this.end = (int) end;
+    						
+    		}
+    	    
+    	    @Override
+    	    public boolean hasNext() {
+        	    
+    	    	LNode next = getNext(node, localStorage);
+    	    	if  (next == null || next.key > end)
+    	        	return false;
+    	    	
+    	        return true;
+    	    }
+    	
+    	    @Override
+    	    public Object next() {
+    	   			          	
+    	        node = getNext(node, localStorage);
+    	        localStorage.readSet.add(node);
+    	    	return getVal(node, localStorage);
+    	    }
 
         };
 	}
 
+	
 	public int getSize() throws TXLibExceptions.AbortException {
 		
 		int counter = 0;

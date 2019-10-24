@@ -1,5 +1,6 @@
 package transactionLib;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class LNode {
@@ -17,6 +18,11 @@ public class LNode {
     // we are missing a bit because this is signed
     private AtomicLong versionAndFlags = new AtomicLong();
 
+    public LNode(Integer key, Object val) {
+    	this.key = key;
+    	this.val = val;
+    }
+    
     protected boolean tryLock() {
         long l = versionAndFlags.get();
         if ((l & lockMask) != 0) {
